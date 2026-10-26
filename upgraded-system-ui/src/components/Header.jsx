@@ -2,7 +2,7 @@ import { profile } from '../data/site'
 
 const links = [
   ['incidents', 'Work'],
-  ['changelog', 'Changelog'],
+  ['design', 'Design'],
   ['hire', 'Freelance'],
   ['notes', 'Notes'],
   ['contact', 'Contact'],
@@ -14,7 +14,7 @@ function Header() {
       <div className="wrap header-inner">
         <a href="#top" className="wordmark">
           <span className="dot" aria-hidden="true"></span>
-          {profile.firstName.toLowerCase()}<span className="muted">.dev</span>
+          <span>{profile.firstName.toLowerCase()}<span className="muted">.dev</span></span>
         </a>
         <nav aria-label="Main">
           {links.map(([id, label]) => (

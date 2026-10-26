@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import Uptime from './Uptime'
+import SystemMap from './SystemMap'
+import Icon from './Icons'
 import { NoteList } from './Notes'
 import { daysSince } from '../lib/uptime'
 import { posts } from '../lib/posts'
+import { designs } from '../lib/designs'
 import {
   profile, incidents, changelog, projects, services, steps, stack, quotes, offCall,
 } from '../data/site'
@@ -27,23 +30,27 @@ function Hero() {
   return (
     <section id="top" className="hero">
       <div className="wrap">
-        <p className="status mono">
-          <span className="pulse" aria-hidden="true"></span>
-          Open to senior backend roles and freelance work · {profile.location}
-        </p>
-        <h1>I keep the backends you never think about running.</h1>
-        <p className="lede">
-          I'm {profile.firstName}, a {profile.role}. For eight years I built and looked after
-          Bell Canada platforms that millions of people use without a second thought. Now I'm
-          looking for my next team, and taking on freelance backend projects.
-        </p>
-        <div className="actions">
-          <a className="btn primary" href="#contact">Start a project</a>
-          <a className="btn" href="#incidents">Read the incident reports</a>
-          {profile.resumeUrl && <a className="btn ghost" href={profile.resumeUrl}>Resume (PDF)</a>}
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <p className="status mono">
+              <span className="pulse" aria-hidden="true"></span>
+              Open to roles and freelance · {profile.location}
+            </p>
+            <h1>I keep the backends you never think about running.</h1>
+            <p className="lede">
+              {profile.firstName} · Java backend engineer and graphic designer. Eight years on
+              systems millions of people use every day.
+            </p>
+            <div className="actions">
+              <a className="btn primary" href="#contact">Start a project <Icon name="arrow" size={16} /></a>
+              <a className="btn" href="#incidents">See my work</a>
+              {profile.resumeUrl && <a className="btn ghost" href={profile.resumeUrl}>Resume</a>}
+            </div>
+          </div>
+          <SystemMap />
         </div>
         <Uptime />
-        <p className="since mono">{days} days since my first production release.</p>
+        <p className="since mono">{days} days since my first production release</p>
       </div>
     </section>
   )
@@ -51,26 +58,24 @@ function Hero() {
 
 function Incidents() {
   return (
-    <Section
-      id="incidents"
-      label="incident reports"
-      title="What the work actually looked like"
-      intro="Job titles say what I was called. These say what I did. Each one is written like a postmortem: impact, action, result."
-    >
+    <Section id="incidents" label="incident reports" title="Problems I've solved">
       <div className="incidents">
         {incidents.map((inc) => (
           <article key={inc.id} className="incident">
-            <div className="incident-meta mono">
-              <span className="resolved">resolved</span>
-              <span>{inc.id}</span>
-              <span>{inc.when}</span>
+            <div className="incident-top">
+              <span className="icon-tile"><Icon name={inc.icon} size={22} /></span>
+              <span className="resolved mono">resolved · {inc.when}</span>
             </div>
+            <p className="metric">{inc.metric}</p>
             <h3>{inc.title}</h3>
-            <dl>
-              <dt className="mono">impact</dt><dd>{inc.impact}</dd>
-              <dt className="mono">action</dt><dd>{inc.action}</dd>
-              <dt className="mono">result</dt><dd className="result">{inc.result}</dd>
-            </dl>
+            <details>
+              <summary className="mono">read the report</summary>
+              <dl>
+                <dt className="mono">impact</dt><dd>{inc.impact}</dd>
+                <dt className="mono">action</dt><dd>{inc.action}</dd>
+                <dt className="mono">result</dt><dd className="result">{inc.result}</dd>
+              </dl>
+            </details>
           </article>
         ))}
       </div>
@@ -80,18 +85,16 @@ function Incidents() {
 
 function Changelog() {
   return (
-    <Section id="changelog" label="changelog" title="Releases so far" intro="My career, newest version first.">
+    <Section id="changelog" label="changelog" title="Releases so far">
       <ol className="changelog">
         {changelog.map((c) => (
           <li key={c.version}>
-            <div className="ver mono">
-              <span className="tag">{c.version}</span>
-              <span className="when">{c.when}</span>
-            </div>
+            <span className="tag mono">{c.version}</span>
             <div className="entry">
               <h3>{c.title}</h3>
-              <ul>{c.notes.map((n) => <li key={n}>{n}</li>)}</ul>
+              <p>{c.note}</p>
             </div>
+            <span className="when mono">{c.when}</span>
           </li>
         ))}
       </ol>
@@ -101,17 +104,17 @@ function Changelog() {
 
 function Projects() {
   return (
-    <Section id="projects" label="side projects" title="Things I built on my own time">
+    <Section id="projects" label="side projects" title="Built on my own time">
       <div className="projects">
         {projects.map((p) => (
           <article key={p.name} className="project">
             <h3>{p.name}</h3>
             <p>{p.summary}</p>
-            <p className="chips mono">{p.stack.join(' · ')}</p>
+            <ul className="pills">{p.stack.map((t) => <li key={t} className="mono">{t}</li>)}</ul>
             {(p.code || p.demo) && (
               <p className="links">
-                {p.code && <a href={p.code} target="_blank" rel="noreferrer">Code ↗</a>}
-                {p.demo && <a href={p.demo} target="_blank" rel="noreferrer">Live ↗</a>}
+                {p.code && <a href={p.code} target="_blank" rel="noreferrer"><Icon name="github" size={16} /> Code</a>}
+                {p.demo && <a href={p.demo} target="_blank" rel="noreferrer"><Icon name="arrow" size={16} /> Live</a>}
               </p>
             )}
           </article>
@@ -121,26 +124,46 @@ function Projects() {
   )
 }
 
+function Design() {
+  const slots = designs.length ? designs : [1, 2, 3, 4].map((n) => ({ key: `slot-${n}`, url: '', name: '' }))
+  return (
+    <Section id="design" label="graphic design" title="Logos and marks">
+      <div className="gallery">
+        {slots.map((d) => (
+          <figure key={d.key} className={`logo-tile ${d.url ? '' : 'empty'}`}>
+            {d.url ? (
+              <img src={d.url} alt={`${d.name} logo`} loading="lazy" />
+            ) : (
+              <span className="slot"><Icon name="pen" size={28} /><span className="mono">your logo here</span></span>
+            )}
+            {d.name && <figcaption className="mono">{d.name}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </Section>
+  )
+}
+
 function Hire() {
   return (
-    <Section
-      id="hire"
-      label="freelance"
-      title="Hire me for a project"
-      intro="One experienced engineer who designs it, builds it, ships it and hands it over cleanly. Here's what I take on."
-    >
+    <Section id="hire" label="freelance" title="Hire me for a project">
       <div className="endpoints">
         {services.map((s) => (
           <article key={s.path} className="endpoint">
+            <span className="icon-tile"><Icon name={s.icon} size={22} /></span>
             <p className="route mono"><span className="method">{s.method}</span>{s.path}</p>
             <h3>{s.title}</h3>
             <p>{s.body}</p>
           </article>
         ))}
       </div>
-      <h3 className="sub">How it works</h3>
       <ol className="steps">
-        {steps.map((s) => <li key={s}>{s}</li>)}
+        {steps.map((s) => (
+          <li key={s.text}>
+            <span className="icon-tile small"><Icon name={s.icon} size={18} /></span>
+            {s.text}
+          </li>
+        ))}
       </ol>
     </Section>
   )
@@ -149,14 +172,14 @@ function Hire() {
 function Stack() {
   return (
     <Section id="stack" label="dependencies" title="What I work with">
-      <dl className="stack">
-        {Object.entries(stack).map(([k, v]) => (
-          <div key={k}>
-            <dt className="mono">{k}</dt>
-            <dd>{v.join(', ')}</dd>
+      <div className="stack">
+        {stack.map((g) => (
+          <div key={g.group} className="stack-group">
+            <p className="stack-head mono"><Icon name={g.icon} size={18} />{g.group}</p>
+            <ul className="pills">{g.items.map((t) => <li key={t} className="mono">{t}</li>)}</ul>
           </div>
         ))}
-      </dl>
+      </div>
       <div className="quotes">
         {quotes.map((q) => (
           <figure key={q.who}>
@@ -172,10 +195,12 @@ function Stack() {
 function OffCall() {
   return (
     <Section id="off-call" label="off-call" title="When the pager is quiet">
-      <ul className="offcall">{offCall.map((o) => <li key={o}>{o}</li>)}</ul>
+      <ul className="offcall">
+        {offCall.map((o) => <li key={o}><Icon name="coffee" size={18} />{o}</li>)}
+      </ul>
       {posts.length > 0 && (
         <>
-          <h3 className="sub">Latest notes</h3>
+          <h3 className="sub"><Icon name="note" size={20} /> Latest notes</h3>
           <NoteList items={posts.slice(0, 3)} />
           <p><a className="more" href="#notes">All notes →</a></p>
         </>
@@ -196,24 +221,20 @@ function Contact() {
     }
   }
   return (
-    <Section
-      id="contact"
-      label="open a ticket"
-      title="Let's talk"
-      intro="Hiring for a senior backend role, or have a system that needs help? Send me a few lines. I usually reply within a day."
-    >
+    <Section id="contact" label="open a ticket" title="Let's talk" intro="Hiring, or have a system that needs help? I reply within a day.">
       <div className="contact">
         {profile.email ? (
           <p className="email">
+            <Icon name="mail" size={28} />
             <a href={`mailto:${profile.email}`}>{profile.email}</a>
             <button type="button" className="btn small" onClick={copy}>{copied ? 'Copied' : 'Copy'}</button>
           </p>
         ) : (
-          <p className="email placeholder">[your email goes here]</p>
+          <p className="email placeholder"><Icon name="mail" size={28} />[your email goes here]</p>
         )}
         <p className="elsewhere">
-          <a href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn ↗</a>
-          <a href={profile.github} target="_blank" rel="noreferrer">GitHub ↗</a>
+          <a href={profile.linkedin} target="_blank" rel="noreferrer"><Icon name="linkedin" /> LinkedIn</a>
+          <a href={profile.github} target="_blank" rel="noreferrer"><Icon name="github" /> GitHub</a>
         </p>
       </div>
     </Section>
@@ -227,6 +248,7 @@ function Home() {
       <Incidents />
       <Changelog />
       <Projects />
+      <Design />
       <Hire />
       <Stack />
       <OffCall />
